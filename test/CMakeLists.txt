@@ -1,0 +1,5 @@
+include_directories(../include)
+find_package(GTest REQUIRED)
+add_executable(liborl_test test.cpp)
+target_link_libraries(liborl_test ${GTEST_LIBRARIES} ${GTEST_MAIN_LIBRARIES} orl pthread)
+add_test(NAME ORLTests COMMAND liborl_test)
