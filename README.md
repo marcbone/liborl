@@ -50,6 +50,11 @@ firefox html/index.html
   * Apply a SpeedProfile (you can use a QuinticPolynomial a Cosine function or an S-Curve Speed Profile)
   * (optional) create a StopCondition. For example you can say that the robot abort the motion if there is an external force pushing the robot. Be careful with this when you open the gripper afterwards! Look at the docs.
   * Let the robot execute the PoseGenerator by providing a duration for the motion.
+  
+## Showcase
+[![Bartender Robots](https://img.youtube.com/vi/POVh1aRzogc/0.jpg)](https://www.youtube.com/watch?v=POVh1aRzogc)
+
+LibORL was used in a beer pouring task to execute the motions. You can find out more about this project in this [blog post](https://pouya-moh.com/bartender-robots).
 ## Intro
 Consider the following example which moves the robot to the position (0.5,0,0.3) within 2 seconds
 ```cpp
