@@ -9,63 +9,64 @@ double SCurve::deceleration_phase(const SCurveTrajectoryParameters &parameters, 
     const auto &times = parameters.times;
 
     if (t <= times.T() - times.T_d + times.T_j2) {
+        switch (derivative) {
+            case Position:
+                return parameters.s.q1 - (parameters.v_lim + parameters.s.v1) * times.T_d / 2 +
+                       parameters.v_lim * (t - times.T() + times.T_d) - parameters.j_max * pow(
+                        t - times.T() + times.T_d, 3) / 6;
+                break;
+            case Velocity:
+                return parameters.v_lim - parameters.j_max * pow(t - times.T() + times.T_d, 2) / 2;
+                break;
+            case Acceleration:
+                return -parameters.j_max * (t - times.T() + times.T_d);
+                break;
+            case Jerk:
+                return parameters.j_min;
+                break;
+        }
+    } else if (t <= times.T() - times.T_j2) {
+        switch (derivative) {
+            case Position:
+                return parameters.s.q1 - (parameters.v_lim + parameters.s.v1) * times.T_d / 2 +
+                       parameters.v_lim * (t - times.T() + times.T_d) +
+                       parameters.a_lim_d / 6 * (
+                               3 * pow(t - times.T() + times.T_d, 2) - 3 * times.T_j2 * (
+                                       t - times.T() + times.T_d) + pow(times.T_j2, 2));
+                break;
+            case Velocity:
+                return parameters.v_lim + parameters.a_lim_d * (t - times.T() + times.T_d - times.T_j2 / 2);
+                break;
+            case Acceleration:
+                return parameters.a_lim_d;
+                break;
+            case Jerk:
+                return 0;
+                break;
+        }
 
-        if (derivative == Derivative::Position) {
-            return parameters.s.q1 - (parameters.v_lim + parameters.s.v1) * times.T_d / 2 +
-                   parameters.v_lim * (t - times.T() + times.T_d) - parameters.j_max * pow(
-                    t - times.T() + times.T_d, 3) / 6;
-        }
-        if (derivative == Derivative::Velocity) {
-            return parameters.v_lim - parameters.j_max * pow(t - times.T() + times.T_d, 2) / 2;
-        }
-        if (derivative == Derivative::Acceleration) {
-            return -parameters.j_max * (t - times.T() + times.T_d);
-        }
-        if (derivative == Derivative::Jerk) {
-            return parameters.j_min;
+    } else if (t <= times.T()) {
+        switch (derivative) {
+            case Position:
+                return parameters.s.q1 - parameters.s.v1 * (times.T() - t) -
+                       parameters.j_max * pow(times.T() - t, 3) / 6;
+                break;
+            case Velocity:
+                return parameters.s.v1 + parameters.j_max * pow(times.T() - t, 2) / 2;
+                break;
+            case Acceleration:
+                return -parameters.j_max * (times.T() - t);
+                break;
+            case Jerk:
+                return parameters.j_max;
+                break;
         }
     }
-    if (t <= times.T() - times.T_j2) {
+    std::stringstream ss;
+    ss << "t should be between " << times.T_a + times.T_v << " and " << times.T() << " but it is " << t;
 
-        if (derivative == Derivative::Position) {
-            return parameters.s.q1 - (parameters.v_lim + parameters.s.v1) * times.T_d / 2 +
-                   parameters.v_lim * (t - times.T() + times.T_d) +
-                   parameters.a_lim_d / 6 * (
-                           3 * pow(t - times.T() + times.T_d, 2) - 3 * times.T_j2 * (
-                                   t - times.T() + times.T_d) + pow(times.T_j2, 2));
+    throw std::invalid_argument(ss.str());
 
-        }
-        if (derivative == Derivative::Velocity) {
-            return parameters.v_lim + parameters.a_lim_d * (t - times.T() + times.T_d - times.T_j2 / 2);
-        }
-        if (derivative == Derivative::Acceleration) {
-            return parameters.a_lim_d;
-        }
-        if (derivative == Derivative::Jerk) {
-            return 0;
-        }
-
-    }
-    if (t <= times.T()) {
-
-        if (derivative == Derivative::Position) {
-            return parameters.s.q1 - parameters.s.v1 * (times.T() - t) - parameters.j_max * pow(times.T() - t, 3) / 6;
-        }
-        if (derivative == Derivative::Velocity) {
-            return parameters.s.v1 + parameters.j_max * pow(times.T() - t, 2) / 2;
-        }
-        if (derivative == Derivative::Acceleration) {
-            return -parameters.j_max * (times.T() - t);
-        }
-        if (derivative == Derivative::Jerk) {
-            return parameters.j_max;
-        }
-    } else {
-        std::stringstream ss;
-        ss << "t should be between " << times.T_a + times.T_v << " and " << times.T() << " but it is " << t;
-
-        throw std::invalid_argument(ss.str());
-    }
 }
 
 double SCurve::eval_s_curve(const SCurveTrajectoryParameters &parameters, double t, Derivative derivative) {
@@ -88,74 +89,83 @@ double SCurve::eval_s_curve(const SCurveTrajectoryParameters &parameters, double
 
 double SCurve::constant_velocity_phase(const SCurveTrajectoryParameters &parameters, double t, Derivative derivative) {
     const auto &times = parameters.times;
-    if (derivative == Derivative::Position) {
-        return parameters.s.q0 + (parameters.v_lim + parameters.s.v0) * times.T_a / 2 +
-               parameters.v_lim * (t - times.T_a);
+    switch (derivative) {
+        case Position:
+            return parameters.s.q0 + (parameters.v_lim + parameters.s.v0) * times.T_a / 2 +
+                   parameters.v_lim * (t - times.T_a);
+            break;
+        case Velocity:
+            return parameters.v_lim;
+            break;
+        case Acceleration:
+            return 0;
+            break;
+        case Jerk:
+            return 0;
+            break;
     }
-    if (derivative == Derivative::Velocity) {
-        return parameters.v_lim;
-    }
-    if (derivative == Derivative::Acceleration) {
-        return 0;
-    }
-    if (derivative == Derivative::Jerk) {
-        return 0;
-    }
+    std::stringstream ss;
+    ss << "Invalid derivative given: " << derivative;
+    throw std::invalid_argument(ss.str());
 }
 
 double SCurve::acceleration_phase(const SCurveTrajectoryParameters &parameters, double t, Derivative derivative) {
     const auto &times = parameters.times;
     if (t <= times.T_j1) {
-        if (derivative == Derivative::Position) {
-            return parameters.s.q0 + parameters.s.v0 * t + parameters.j_max * pow(t, 3) / 6;
-        }
-        if (derivative == Derivative::Velocity) {
-            return parameters.s.v0 + parameters.j_max * pow(t, 2) / 2;
-        }
-        if (derivative == Derivative::Acceleration) {
-            return parameters.j_max * t;
-        }
-        if (derivative == Derivative::Jerk) {
-            return parameters.j_max;
+        switch (derivative) {
+            case Position:
+                return parameters.s.q0 + parameters.s.v0 * t + parameters.j_max * pow(t, 3) / 6;
+                break;
+            case Velocity:
+                return parameters.s.v0 + parameters.j_max * pow(t, 2) / 2;
+                break;
+            case Acceleration:
+                return parameters.j_max * t;
+                break;
+            case Jerk:
+                return parameters.j_max;
+                break;
         }
     }
     if (t <= times.T_a - times.T_j1) {
-
-        if (derivative == Derivative::Position) {
-            return parameters.s.q0 + parameters.s.v0 * t +
-                   parameters.a_lim_a / 6 * (3 * pow(t, 2) - 3 * times.T_j1 * t + pow(times.T_j1, 2));
-        }
-        if (derivative == Derivative::Velocity) {
-            return parameters.s.v0 + parameters.a_lim_a * (t - times.T_j1 / 2);
-        }
-        if (derivative == Derivative::Acceleration) {
-            return parameters.a_lim_a;
-        }
-        if (derivative == Derivative::Jerk) {
-            return 0;
+        switch (derivative) {
+            case Position:
+                return parameters.s.q0 + parameters.s.v0 * t +
+                       parameters.a_lim_a / 6 * (3 * pow(t, 2) - 3 * times.T_j1 * t + pow(times.T_j1, 2));
+                break;
+            case Velocity:
+                return parameters.s.v0 + parameters.a_lim_a * (t - times.T_j1 / 2);
+                break;
+            case Acceleration:
+                return parameters.a_lim_a;
+                break;
+            case Jerk:
+                return 0;
+                break;
         }
     }
     if (t <= times.T_a) {
-
-        if (derivative == Derivative::Position) {
-            return parameters.s.q0 + (parameters.v_lim + parameters.s.v0) * times.T_a / 2 -
-                   parameters.v_lim * (times.T_a - t) - parameters.j_min * pow(
-                    times.T_a - t, 3) / 6;
+        switch (derivative) {
+            case Position:
+                return parameters.s.q0 + (parameters.v_lim + parameters.s.v0) * times.T_a / 2 -
+                       parameters.v_lim * (times.T_a - t) - parameters.j_min * pow(
+                        times.T_a - t, 3) / 6;
+                break;
+            case Velocity:
+                return parameters.v_lim + parameters.j_min * pow(times.T_a - t, 2) / 2;
+                break;
+            case Acceleration:
+                return -parameters.j_min * (times.T_a - t);
+                break;
+            case Jerk:
+                return parameters.j_min;
+                break;
         }
-        if (derivative == Derivative::Velocity) {
-            return parameters.v_lim + parameters.j_min * pow(times.T_a - t, 2) / 2;
-        }
-        if (derivative == Derivative::Acceleration) {
-            return -parameters.j_min * (times.T_a - t);
-        }
-        if (derivative == Derivative::Jerk) {
-            return parameters.j_min;
-        }
-    } else {
-        std::stringstream ss;
-        ss << "t should be between " << 0 << " and " << times.T_a << " but it is " << t;
-        throw std::invalid_argument(ss.str());
     }
+    std::stringstream ss;
+    ss << "t should be between " << 0 << " and " << times.T_a << " but it is " << t;
+    throw std::invalid_argument(ss.str());
+
 }
 
 SCurveTrajectoryParameters SCurve::generate_trajectory_parameters(const SCurveTimings &times,
