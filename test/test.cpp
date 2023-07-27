@@ -8,11 +8,7 @@
 using namespace orl;
 TEST(PoseGeneratorTest, LinearInterpolation) {
     orl::Pose start_pose;
-//    start_pose.orientation.set_RPY(0, 0, 0);
-//    start_pose.position.set(0, 0, 0);
     orl::Pose end_pose;
-//    end_pose.orientation.set_RPY(0, 0, 0);
-//    end_pose.position.set(1, 1, 1);
     auto pose_generator = orl::generate_pose_interpolation_pose_generator(end_pose);
     orl::apply_speed_profile(pose_generator, orl::SpeedProfiles::LinearProfile());
     auto pose_generator_quintic = orl::generate_pose_interpolation_pose_generator(end_pose);
@@ -21,8 +17,6 @@ TEST(PoseGeneratorTest, LinearInterpolation) {
     for (int i = 0; i < 100; i++) {
         double progress = i / 100.;
         orl::PoseGeneratorInput input{progress, start_pose, state};
-//        std::cout << "1: " << pose_generator(input).toString() << std::endl;
-//        std::cout << "2: " << pose_generator_quintic(input).toString() << std::endl;
     }
 }
 
@@ -44,9 +38,6 @@ TEST(PoseGeneratorTest, ConstantPositionTest) {
         ASSERT_NEAR(generator_quat.x(), quat.x(), 0.00001);
         ASSERT_NEAR(generator_quat.y(), quat.y(), 0.00001);
         ASSERT_NEAR(generator_quat.z(), quat.z(), 0.00001);
-//        std::cout<<generator_quat.x()<<" "<< quat.x()<<std::endl;
-//       std::cout<<"desired "<<desired_position.x()<<"\t"<<desired_position.y()<<"\t"<<desired_position.z()<<"\t"<<std::endl;
-//       std::cout<<"generat "<< generator_position.x()<<"\t"<<generator_position.y()<<"\t"<<generator_position.z()<<"\t"<<std::endl;
         ASSERT_NEAR((generator_position - desired_position).norm(), 0, 0.00001);
     }
 }
@@ -65,8 +56,6 @@ TEST(PoseGeneratorTest, UnitCircleXYTest) {
         Position generator_position(pose_generator(input).getPosition());
         Position desired_position;
         desired_position << std::cos(progress * 2 * M_PI), std::sin(progress * 2 * M_PI), 0;
-//       std::cout<<"desired "<<desired_position.x()<<"\t"<<desired_position.y()<<"\t"<<desired_position.z()<<"\t"<<std::endl;
-//       std::cout<<"generat "<< generator_position.x()<<"\t"<<generator_position.y()<<"\t"<<generator_position.z()<<"\t"<<std::endl;
         ASSERT_NEAR((generator_position - desired_position).norm(), 0, 0.00001);
     }
 }
@@ -82,8 +71,6 @@ TEST(PoseGeneratorTest, UnitCircleYZTest) {
         Position generator_position(pose_generator(input).getPosition());
         Position desired_position;
         desired_position << 0, std::cos(progress * 2 * M_PI), std::sin(progress * 2 * M_PI);
-//       std::cout<<"desired "<<desired_position.x()<<"\t"<<desired_position.y()<<"\t"<<desired_position.z()<<"\t"<<std::endl;
-//       std::cout<<"generat "<< generator_position.x()<<"\t"<<generator_position.y()<<"\t"<<generator_position.z()<<"\t"<<std::endl;
         ASSERT_NEAR((generator_position - desired_position).norm(), 0, 0.00001);
     }
 }
@@ -99,8 +86,6 @@ TEST(PoseGeneratorTest, UnitCircleZXTest) {
         Position generator_position(pose_generator(input).getPosition());
         Position desired_position;
         desired_position << std::sin(progress * 2 * M_PI), 0, std::cos(progress * 2 * M_PI);
-//       std::cout<<"desired "<<desired_position.x()<<"\t"<<desired_position.y()<<"\t"<<desired_position.z()<<"\t"<<std::endl;
-//       std::cout<<"generat "<< generator_position.x()<<"\t"<<generator_position.y()<<"\t"<<generator_position.z()<<"\t"<<std::endl;
         ASSERT_NEAR((generator_position - desired_position).norm(), 0, 0.00001);
     }
 }
@@ -116,10 +101,6 @@ TEST(PoseGeneratorTest, RelativeMotionTest) {
         Position generator_position(pose_generator(input).getPosition());
         Position desired_position;
         desired_position << 1, 0, progress;
-//        std::cout << "desired " << desired_position.x() << "\t" << desired_position.y() << "\t" << desired_position.z()
-//                  << "\t" << std::endl;
-//        std::cout << "generat " << generator_position.x() << "\t" << generator_position.y() << "\t"
-//                  << generator_position.z() << "\t" << std::endl;
         ASSERT_EQ(generator_position, desired_position);
     }
 }
@@ -135,8 +116,6 @@ TEST(PoseGeneratorTest, AbsoluteMotionTest) {
         Position generator_position(pose_generator(input).getPosition());
         Position desired_position;
         desired_position << 1 - progress, 0, progress;
-//       std::cout<<"desired "<<desired_position.x()<<"\t"<<desired_position.y()<<"\t"<<desired_position.z()<<"\t"<<std::endl;
-//       std::cout<<"generat "<< generator_position.x()<<"\t"<<generator_position.y()<<"\t"<<generator_position.z()<<"\t"<<std::endl;
         ASSERT_EQ(generator_position, desired_position);
     }
 }
@@ -152,9 +131,6 @@ TEST(PoseGeneratorTest, MovePoseTest) {
         PoseGeneratorInput input{progress, start, franka::RobotState()};
         Position generator_position(pose_generator_move(input).getPosition());
         Position desired_position(pose_generator_abs(input).getPosition());
-
-//       std::cout<<"desired "<<desired_position.x()<<"\t"<<desired_position.y()<<"\t"<<desired_position.z()<<"\t"<<std::endl;
-//       std::cout<<"generat "<< generator_position.x()<<"\t"<<generator_position.y()<<"\t"<<generator_position.z()<<"\t"<<std::endl;
         ASSERT_EQ(generator_position, desired_position);
     }
 }
@@ -173,10 +149,7 @@ TEST(PoseGeneratorTest, AppliedPoseGeneratorsTest) {
         Position generator_position(pose_generator(input).getPosition());
         Position desired_position;
         desired_position << 1, progress, progress;
-//       std::cout<<"desired "<<desired_position.x()<<"\t"<<desired_position.y()<<"\t"<<desired_position.z()<<"\t"<<std::endl;
-//         std::cout<<"generat "<< generator_position.x()<<"\t"<<generator_position.y()<<"\t"<<generator_position.z()<<"\t"<<std::endl;
         ASSERT_EQ(generator_position, desired_position);
-        //ASSERT_NEAR((generator_position - desired_position).norm(), 0, 0.00001);
     }
 }
 
@@ -192,10 +165,6 @@ TEST(PoseGeneratorTest, RelativeTCPPoseGeneratorTest) {
         Position generator_position(pose_generator(input).getPosition());
         Position desired_position;
         desired_position << 1, progress, 0;
-//       std::cout<<"desired "<<desired_position.x()<<"\t"<<desired_position.y()<<"\t"<<desired_position.z()<<"\t"<<std::endl;
-//        std::cout << "generat " << generator_position.x() << "\t" << generator_position.y() << "\t"
-//                  << generator_position.z() << "\t" << std::endl;
-//        ASSERT_EQ(generator_position, desired_position);
         ASSERT_NEAR((generator_position - desired_position).norm(), 0, 0.00001);
     }
 }
@@ -213,11 +182,6 @@ TEST(SpeedProfileTest, CosineTest) {
         Position generator_position(pose_generator(input).getPosition());
         Position desired_position;
         desired_position << (1 - std::cos(M_PI * progress)) / 2, 0, 0;
-//        std::cout << "desired i: " << i << " " << desired_position.x() << "\t" << desired_position.y() << "\t"
-//                  << desired_position.z() << "\t" << std::endl;
-//        std::cout << "generat i: " << i << " " << generator_position.x() << "\t" << generator_position.y() << "\t"
-//                  << generator_position.z() << "\t" << std::endl;
-//        ASSERT_EQ(generator_position, desired_position);
         ASSERT_NEAR((generator_position - desired_position).norm(), 0, 0.00001);
     }
 }
@@ -236,10 +200,6 @@ TEST(PoseGeneratorTest, BezierTest) {
         Position generator_position(pose_generator(input).getPosition());
         Position desired_position;
         desired_position << 1 - progress, 0, progress;
-//        std::cout << "desired " << desired_position.x() << "\t" << desired_position.y() << "\t" << desired_position.z()
-//                  << "\t" << std::endl;
-//        std::cout << "generat " << generator_position.x() << "\t" << generator_position.y() << "\t"
-//                  << generator_position.z() << "\t" << std::endl;
         ASSERT_NEAR((generator_position - desired_position).norm(), 0, 0.00001);
     }
 }
@@ -257,10 +217,6 @@ TEST(GeometryTest, BezierTest) {
         Position generator_position(pose_generator(progress));
         Position desired_position;
         desired_position << 1, 0, progress;
-//        std::cout << "desired " << desired_position.x() << "\t" << desired_position.y() << "\t" << desired_position.z()
-//                  << "\t" << std::endl;
-//        std::cout << "generat " << generator_position.x() << "\t" << generator_position.y() << "\t"
-//                  << generator_position.z() << "\t" << std::endl;
         ASSERT_EQ(generator_position, desired_position);
     }
 }
@@ -303,17 +259,12 @@ TEST(GeometryTest, BSplineTest) {
     auto pose_generator_2 = generate_b_spline(points, 2);
     for (int i = 0; i < 100; i++) {
 
-//        std::cout<<desired_x.at(i+1)<<"  "<<desired_x[i]<<std::endl;
         std::cout << std::fixed << std::setprecision(4);
         double progress = i / 100.;
         Position generator_position(pose_generator(progress));
         Position generator_position_2(pose_generator_2(progress));
         Position desired_position;
         desired_position << desired_x.at(i), desired_y.at(i), 0;
-//        std::cout << "desired " << desired_position.x() << "\t" << desired_position.y() << "\t" << desired_position.z()
-//                  << "\t" << std::endl;
-//        std::cout << "generat " << generator_position.x() << "\t" << generator_position.y() << "\t"
-//                  << generator_position.z() << "\t" << std::endl;
         ASSERT_NEAR((generator_position - desired_position).norm(), 0, 0.00001);
         ASSERT_NEAR((generator_position - generator_position_2).norm(), 0, 0.00001);
     }
@@ -323,8 +274,6 @@ TEST(GeometryTest, BSplineDegree1Test) {
 
     std::vector<Position> points{{0, 0, 0},
                                  {0, 1, 0},
-//                             {2, 1, 0},
-//                             {2, 0, 0}
     };
     auto pose_generator = generate_b_spline(points, 1);
 
@@ -334,11 +283,7 @@ TEST(GeometryTest, BSplineDegree1Test) {
         Position generator_position(pose_generator(progress));
 
         Position desired_position;
-        desired_position << 0, progress, 0;
-//            std::cout << "desired " << desired_position.x() << "\t" << desired_position.y() << "\t" << desired_position.z()
-//                      << "\t" << std::endl;
-//            std::cout << "generat " << generator_position.x() << "\t" << generator_position.y() << "\t"
-//                      << generator_position.z() << "\t" << std::endl;
+        desired_position << 0, progress, 0;;
         ASSERT_NEAR((generator_position - desired_position).norm(), 0, 0.0001);
     }
 }
@@ -385,10 +330,6 @@ TEST(GeometryTest, BSplineMotionTest) {
         Position generator_position(pose_generator(input).getPosition());
         Position desired_position;
         desired_position << desired_x.at(i), desired_y.at(i), 0;
-//        std::cout << "desired " << desired_position.x() << "\t" << desired_position.y() << "\t" << desired_position.z()
-//                  << "\t" << std::endl;
-//        std::cout << "generat " << generator_position.x() << "\t" << generator_position.y() << "\t"
-//                  << generator_position.z() << "\t" << std::endl;
         ASSERT_NEAR((generator_position - desired_position).norm(), 0, 0.00001);
     }
 }
@@ -566,10 +507,6 @@ TEST(PoseGeneratorTest, SCurve) {
         Position generator_position(pose_generator(input).getPosition());
         Position desired_position;
         desired_position << 1, 0, 1 + desired_positions[i];
-//        std::cout << "desired " << desired_position.x() << "\t" << desired_position.y() << "\t" << desired_position.z()
-//                  << "\t" << std::endl;
-//        std::cout << "generat " << generator_position.x() << "\t" << generator_position.y() << "\t"
-//                  << generator_position.z() << "\t" << std::endl;
         ASSERT_NEAR((generator_position - desired_position).norm(), 0, 0.00001);
     }
 }

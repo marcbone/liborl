@@ -20,19 +20,13 @@ generate_circle_movement(const Eigen::Vector3d &center, const Eigen::Vector3d &n
 
     //project center:
     const double radius = std::abs((center - start).norm());
-//    std::cout << "normal: " << normal << std::endl;
     Eigen::Vector3d center_direction = center - start;
     // v1 = [0,1,0] x normal aka the new y direction
     auto v1 = normal.cross(center_direction);
-//    v1 << normal[2], 0, -normal[0];
     v1.normalize();
-//    std::cout << "v1: " << v1 << std::endl;
-//    std::cout << "radius: " << radius << std::endl;
     Eigen::Vector3d v2 = normal.cross(v1); // the new x direction
-//    std::cout << "v2: " << v2 << std::endl;
     auto tmp_start = radius * v1;
     double start_angle = angle_between(start - center, tmp_start, normal);
-//    std::cout << "start angle: " << start_angle << std::endl;
     std::function<Eigen::Vector3d(double)> circle_generator = [=](double progress) -> Eigen::Vector3d {
         double desired_angle = start_angle + progress * rotation_angle;
         Eigen::Vector3d point_on_circle =
@@ -139,8 +133,8 @@ generate_b_spline(const std::vector<Eigen::Vector3d> &points, int degree, const 
     if (knot_vector.size() != points.size() + degree + 1) {
         std::stringstream ss;
         ss << "The knot vector has the wrong length. It should have #points + degree of polynomial + 1 = "
-                << points.size() + degree + 1 << " components." << std::endl << "But it has " << knot_vector.size()
-                << " components";
+           << points.size() + degree + 1 << " components." << std::endl << "But it has " << knot_vector.size()
+           << " components";
         throw std::invalid_argument(ss.str());
     }
     auto b_spline_generator = [=](double progress) {

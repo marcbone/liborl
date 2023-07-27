@@ -1,9 +1,9 @@
 // Copyright (c) 2020 Marco Boneberger
 // Licensed under the EUPL-1.2-or-later
 #include <liborl/Pose.h>
+
 using namespace orl;
 using namespace Eigen;
-
 
 
 void Orientation::set_RPY(double r, double p, double y) {
@@ -54,8 +54,6 @@ Orientation Orientation::inverse() const {
 }
 
 Pose::Pose() {
-//    pose
-//    orientation.set_RPY(0, 0, 0);
 }
 
 Pose::Pose(std::array<double, 16> mat) {
