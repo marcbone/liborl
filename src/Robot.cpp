@@ -30,12 +30,6 @@ void Robot::cart_motion(const Pose &dest, const double max_time, const boost::op
 
 
 void Robot::close_gripper(double width, double speed, double force, double epsilon_width) {
-    /*
-     * Maximum tolerated deviation when the actual grasped width is smaller than the commanded grasp width.
-[in]
-epsilon_outer
-Maximum tolerated deviation when the actual grasped width is larger than the commanded grasp width.
-     */
     gripper.grasp(width, speed, force, epsilon_width, epsilon_width);
 }
 
@@ -57,7 +51,6 @@ std::array<double, 7> Robot::get_current_Joints() {
 
 Robot::Robot(const std::string &robot_name) : robot(robot_name), gripper(robot_name), model(robot.loadModel()) {
     robot.setGuidingMode({true, true, true, true, true, true}, false);
-//    robot.automaticErrorRecovery();
 
 
     // Set additional parameters always before the control loop, NEVER in the control loop!
@@ -105,17 +98,14 @@ Robot::impedance_mode(double translational_stiffness, double rotational_stiffnes
     stiffness.bottomRightCorner(3, 3) << rotational_stiffness * Eigen::MatrixXd::Identity(3, 3);
     damping.setZero();
     damping.topLeftCorner(3, 3) << 2.0 * sqrt(translational_stiffness) *
-            Eigen::MatrixXd::Identity(3, 3);
+                                   Eigen::MatrixXd::Identity(3, 3);
     damping.bottomRightCorner(3, 3) << 2.0 * sqrt(rotational_stiffness) *
-            Eigen::MatrixXd::Identity(3, 3);
+                                       Eigen::MatrixXd::Identity(3, 3);
     try {
         // connect to robot
         franka::RobotState initial_state = robot.readOnce();
         orl::Pose initial_pose(initial_state.O_T_EE);
-        // equilibrium point is the initial position
-//                Eigen::Affine3d initial_transform(Eigen::Matrix4d::Map(desired_attractor_pose.to_matrix().data()));
-//                Eigen::Vector3d position_d(initial_transform.translation());
-//                Eigen::Quaterniond orientation_d(initial_transform.linear());
+
         // set collision behavior
         robot.setCollisionBehavior({{100.0, 100.0, 100.0, 100.0, 100.0, 100.0, 100.0}},
                                    {{100.0, 100.0, 100.0, 100.0, 100.0, 100.0, 100.0}},
@@ -197,10 +187,7 @@ void Robot::move_cartesian(PoseGenerator cartesian_pose_generator, double max_ti
                            const boost::optional<StopCondition> &stop_condition, boost::optional<double> elbow) {
     Pose initial_pose(robot.readOnce().O_T_EE_c);
     std::array<double, 2> initial_elbow;
-
     double time = 0.0;
-
-//    std::cout << "Start motion..." << std::endl;
     bool should_stop = false;
     try {
         robot.control(
@@ -216,46 +203,14 @@ void Robot::move_cartesian(PoseGenerator cartesian_pose_generator, double max_ti
                     const double progress = time / max_time;
                     PoseGeneratorInput generatorInput{progress, initial_pose, state};
                     Pose new_pose_pose = cartesian_pose_generator(generatorInput);
-                    if (time == 0) {
-//                        std::cout << "desired pose: " << new_pose_pose.toString() << std::endl;
-//                        std::cout << "start: " << initial_pose.toString() << std::endl;
-                    }
                     std::array<double, 16> new_pose = new_pose_pose.to_matrix();
-//                    std::cout << new_pose_pose.toString() << std::endl << std::endl;
-//                    std::cout << Pose(state.O_T_EE).toString() << std::endl << std::endl;
-//                    for (int i = 0; i < 4; i++) {
-//                        for (int j = 0; j < 4; j++) {
-//                            std::cout << new_pose[i + 4 * j] << "\t";
-//                        }
-//                        std::cout << std::endl;
-//                    }
-//                    Eigen::Vector3d a;
-//                    a << new_pose[0], new_pose[1], new_pose[2];
-//                    Eigen::Vector3d b;
-//                    b << new_pose[4], new_pose[5], new_pose[6];
-//                    Eigen::Vector3d c;
-//                    c << new_pose[8], new_pose[9], new_pose[10];
-//                    std::cout << a.norm() << " " << b.norm() << " " << c.norm() << std::endl;
-//                    std::cout << std::endl;
-
-                    // Print the xyz-forces at the EE in every step of  control loop:
-//                    double force_norm = sqrt(state.O_F_ext_hat_K[0] * state.O_F_ext_hat_K[0] +
-//                                             state.O_F_ext_hat_K[1] * state.O_F_ext_hat_K[1] +
-//                                             state.O_F_ext_hat_K[2] * state.O_F_ext_hat_K[2]);
-//                    std::cout << "Force: " << force_norm << std::endl;
                     if (elbow.is_initialized()) {
                         new_elbow[0] += (elbow.value() - initial_elbow[0]) * (1 - std::cos(M_PI * progress)) / 2.0;
                     }
                     if (stop_condition.is_initialized()) {
                         should_stop = stop_condition.value()(generatorInput);
-
-
                     }
                     if (time >= max_time or should_stop) {
-                        if (should_stop) {
-//                            std::cout << "Stopped motion by stop condition" << std::endl;
-                        }
-//                        std::cout << std::endl << "Finished motion, shutting down example" << std::endl;
                         if (elbow.is_initialized()) {
                             return franka::MotionFinished({new_pose, new_elbow});
                         }
@@ -329,13 +284,8 @@ void Robot::double_tap_robot_to_continue() {
     robot.read(
             [&](
                     const franka::RobotState &robot_state) {
-//                std::cout << Pose(robot_state.O_T_EE).orientation.quaternion.toRotationMatrix() << std::endl<<std::endl;
-                // Printing to std::cout adds a delay. This is acceptable for a read loop such as this,
-                // but should not be done in a control loop.
                 Eigen::Vector3d force;
                 force << robot_state.O_F_ext_hat_K[0], robot_state.O_F_ext_hat_K[1], robot_state.O_F_ext_hat_K[2];
-//                std::cout << (start_force - force).norm() << std::endl;
-//                std::cout << touch_counter << std::endl;
                 if ((start_force - force).norm() > 2 and can_be_touched_again) {
                     touch_counter++;
                     can_be_touched_again = false;
@@ -372,14 +322,8 @@ void Robot::force_to_continue(double force, Axis axis) {
     robot.read(
             [&](
                     const franka::RobotState &robot_state) {
-//                std::cout << Pose(robot_state.O_T_EE).orientation.quaternion.toRotationMatrix() << std::endl<<std::endl;
-                // Printing to std::cout adds a delay. This is acceptable for a read loop such as this,
-                // but should not be done in a control loop.
                 Eigen::Vector3d force_v;
                 force_v << robot_state.O_F_ext_hat_K[0], robot_state.O_F_ext_hat_K[1], robot_state.O_F_ext_hat_K[2];
-//                std::cout << (start_force - force).norm() << std::endl;
-//                std::cout << touch_counter << std::endl;
-
                 return std::abs(start_force[axis] - force_v[axis]) < force;
             });
 }
@@ -390,22 +334,15 @@ bool Robot::force_to_continue(double force, Axis axis, double time_out) {
     Eigen::Vector3d start_force;
     start_force << s.O_F_ext_hat_K[0], s.O_F_ext_hat_K[1], s.O_F_ext_hat_K[2];
     int counter = 0;
-    robot.read(
-            [&](
-                    const franka::RobotState &robot_state) {
-                counter++;
-//                std::cout << Pose(robot_state.O_T_EE).orientation.quaternion.toRotationMatrix() << std::endl<<std::endl;
-                // Printing to std::cout adds a delay. This is acceptable for a read loop such as this,
-                // but should not be done in a control loop.
-                Eigen::Vector3d force_v;
-                force_v << robot_state.O_F_ext_hat_K[0], robot_state.O_F_ext_hat_K[1], robot_state.O_F_ext_hat_K[2];
-//                std::cout << (start_force - force).norm() << std::endl;
-//                std::cout << touch_counter << std::endl;
-                if (counter > time_out * 1000) {
-                    return false;
-                }
-                return std::abs(start_force[axis] - force_v[axis]) < force;
-            });
+    robot.read([&](const franka::RobotState &robot_state) {
+        counter++;
+        Eigen::Vector3d force_v;
+        force_v << robot_state.O_F_ext_hat_K[0], robot_state.O_F_ext_hat_K[1], robot_state.O_F_ext_hat_K[2];
+        if (counter > time_out * 1000) {
+            return false;
+        }
+        return std::abs(start_force[axis] - force_v[axis]) < force;
+    });
     return counter < time_out * 1000;
 }
 
@@ -418,14 +355,8 @@ void Robot::torque_to_continue(double torque, Axis axis) {
     robot.read(
             [&](
                     const franka::RobotState &robot_state) {
-//                std::cout << Pose(robot_state.O_T_EE).orientation.quaternion.toRotationMatrix() << std::endl<<std::endl;
-                // Printing to std::cout adds a delay. This is acceptable for a read loop such as this,
-                // but should not be done in a control loop.
                 Eigen::Vector3d force_v;
                 force_v << robot_state.O_F_ext_hat_K[3], robot_state.O_F_ext_hat_K[4], robot_state.O_F_ext_hat_K[5];
-//                std::cout << (start_force - force).norm() << std::endl;
-//                std::cout << touch_counter << std::endl;
-
                 return std::abs(start_force[axis] - force_v[axis]) < torque;
             });
 }
@@ -441,13 +372,8 @@ bool Robot::torque_to_continue(double torque, Axis axis, double time_out) {
             [&](
                     const franka::RobotState &robot_state) {
                 counter++;
-//                std::cout << Pose(robot_state.O_T_EE).orientation.quaternion.toRotationMatrix() << std::endl<<std::endl;
-                // Printing to std::cout adds a delay. This is acceptable for a read loop such as this,
-                // but should not be done in a control loop.
                 Eigen::Vector3d force_v;
                 force_v << robot_state.O_F_ext_hat_K[3], robot_state.O_F_ext_hat_K[4], robot_state.O_F_ext_hat_K[5];
-//                std::cout << (start_force - force).norm() << std::endl;
-//                std::cout << touch_counter << std::endl;
                 if (counter > time_out * 1000) {
                     return false;
                 }

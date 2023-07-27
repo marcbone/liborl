@@ -5,7 +5,9 @@
  * The inertia matrix of the payloads is calculated by its type
  */
 #include <liborl/Payload.h>
+
 using namespace orl;
+
 Payload Payloads::Sphere(double radius, double mass, const std::array<double, 3> &position_wrt_flange) {
     double i = (2.0 / 5.0) * mass * radius * radius;
     std::array<double, 9> inertia_matrix = {i, 0, 0, 0, i, 0, 0, 0, i};

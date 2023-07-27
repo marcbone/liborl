@@ -3,6 +3,7 @@
 #include <liborl/SpeedProfile.h>
 #include "QuinticPolynomial.hpp"
 #include <liborl/SCurve.h>
+
 using namespace orl;
 
 void orl::apply_speed_profile(PoseGenerator &pose_generator, const SpeedProfile &speed_profile) {

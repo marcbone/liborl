@@ -188,15 +188,15 @@ PoseGenerator PoseGenerators::AbsoluteMotion(const Position &translation, Frame 
             case Frame::RobotTCP:
                 throw std::invalid_argument("RobotTCP in absolute motion does not make any sense");
             case Frame::RobotBase:
-                goal = start = input.initial_pose.getPosition();
+                start = input.initial_pose.getPosition();
                 goal = translation;
                 break;
             case Frame::UnitFrame:
                 std::cerr
                         << "Absolute motion in Unit Frame equals Relative Motion in Unit Frame. Use Relative Motion the next time"
                         << std::endl;
-                goal = start = {0, 0, 0};
-                goal = (translation);
+                start = {0, 0, 0};
+                goal = translation;
                 break;
 
         }
@@ -222,7 +222,7 @@ PoseGenerator PoseGenerators::BezierMotion(const std::vector<Position> &points, 
         std::vector<Position> points_with_start{start.getPosition()};
         orl::Pose goal = start;
         goal.setPosition(points.at(points.size() - 1));
-        for (const auto &point : points) {
+        for (const auto &point: points) {
             points_with_start.push_back(point);
         }
         auto position_generator = generate_bezier_curve(points_with_start);
@@ -270,7 +270,7 @@ PoseGenerator PoseGenerators::BSplineMotion(const std::vector<Position> &points,
         std::vector<Position> points_with_start{start.getPosition()};
         orl::Pose goal = start;
         goal.setPosition(points.at(points.size() - 1));
-        for (const auto &point : points) {
+        for (const auto &point: points) {
             points_with_start.push_back(point);
         }
         auto position_generator = generate_b_spline(points_with_start, degree, knot_vector);
