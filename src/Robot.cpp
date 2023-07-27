@@ -171,7 +171,7 @@ Robot::impedance_mode(double translational_stiffness, double rotational_stiffnes
             }
             return tau_d_array;
         };
-        robot.control(impedance_control_callback);
+        robot.control(impedance_control_callback, false);
     } catch (const franka::Exception &ex) {
         // print exception
         std::cout << ex.what() << std::endl;
@@ -220,8 +220,8 @@ void Robot::move_cartesian(PoseGenerator cartesian_pose_generator, double max_ti
                         return {new_pose, new_elbow};
                     }
                     return new_pose;
-                }, franka::ControllerMode::kCartesianImpedance);
-    } catch (franka::Exception exception) {
+                }, franka::ControllerMode::kCartesianImpedance, false);
+    } catch (const franka::Exception& exception) {
         std::cout << exception.what() << std::endl;
         if (should_stop) {
             std::cout << "robot has stopped due to StopCondition" << std::endl;
@@ -396,5 +396,5 @@ void Robot::absolute_cart_motion(double x, double y, double z, double max_time,
 
 void Robot::joint_motion(std::array<double, 7> q_goal, double speed_factor) {
     MotionGenerator motion_generator(speed_factor, q_goal);
-    robot.control(motion_generator);
+    robot.control(motion_generator, franka::ControllerMode::kJointImpedance, false);
 }
